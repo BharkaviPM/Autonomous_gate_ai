@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gate Analytics</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        th { background: #1e88e5; color: white; }
+    </style>
+</head>
+<body>
+
+<h2>📊 Gate Intelligence Logs</h2>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Hour</th>
+        <th>Frequency</th>
+        <th>Intent</th>
+        <th>Approval %</th>
+        <th>Anomaly</th>
+        <th>Time</th>
+    </tr>
+
+    {% for log in logs %}
+    <tr>
+        <td>{{ log.visitor_name }}</td>
+        <td>{{ log.visit_hour }}</td>
+        <td>{{ log.frequency_7d }}</td>
+        <td>{{ log.intent }}</td>
+        <td>{{ log.approval_probability|floatformat:2 }}</td>
+        <td>{{ log.anomaly_score }}</td>
+        <td>{{ log.created_at }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+<a href="/">⬅ Back to Gate</a>
+
+</body>
+</html>

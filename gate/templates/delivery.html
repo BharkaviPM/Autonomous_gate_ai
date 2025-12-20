@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-900 text-white p-6 flex flex-col items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-sm bg-slate-800 p-8 rounded-[3rem] shadow-2xl border-4 border-indigo-500">
+        <h1 class="text-2xl font-bold mb-6 text-center">
+            SecureGate <span class="text-indigo-400">AI</span>
+        </h1>
+
+        <!-- ✅ REAL AI TRIGGER -->
+        <button onclick="logEntry()" 
+                class="w-full bg-indigo-600 py-6 rounded-2xl font-bold text-xl mb-4">
+            LOG ENTRY
+        </button>
+
+        <p id="status" class="text-center text-indigo-300 font-mono text-sm h-6">
+            Waiting for input...
+        </p>
+
+        <div class="mt-10 border-t border-slate-700 pt-6 text-center">
+            <p class="text-xs text-slate-500 mb-2">PITCH MODE: PHASE 4</p>
+
+            <button onclick="simulateError()" 
+                    class="text-xs text-red-400 border border-red-400 px-4 py-2 rounded-full uppercase tracking-widest">
+                Simulate Library Error
+            </button>
+        </div>
+    </div>
+
+<script>
+const status = document.getElementById("status");
+
+/* ✅ CALL DJANGO AI AGENT */
+function logEntry() {
+    status.innerText = "Analyzing delivery...";
+
+    fetch("/agent/process/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command: "DELIVERY" })
+    })
+    .then(res => res.json())
+    .then(data => {
+        // AI DECISION OUTPUT
+        if (data.status === "OPEN") {
+            status.innerText = "✅ GATE OPENING";
+        } 
+        else if (data.status === "HOLD") {
+            status.innerText = "⛔ ENTRY HELD – ALERT SENT";
+        } 
+        else {
+            status.innerText = "⏳ WAITING FOR APPROVAL";
+        }
+
+        // Speak AI decision
+        speak(data.en);
+    })
+    .catch(err => {
+        status.innerText = "❌ SYSTEM ERROR";
+        console.error(err);
+    });
+}
+
+/* 🔊 VOICE FEEDBACK */
+function speak(text) {
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "en-US";
+    speechSynthesis.speak(msg);
+}
+
+/* 🚨 ERROR SIMULATION (FOR PITCH) */
+function simulateError() {
+    status.innerText = "⚠️ Library Error Detected";
+    setTimeout(() => {
+        status.innerText = "🤖 AI Agent Self-Healed";
+    }, 2000);
+}
+</script>
+
+</body>
+</html>

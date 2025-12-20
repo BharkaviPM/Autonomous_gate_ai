@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Gate Operator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  background:#000;
+  color:#fff;
+  font-family:sans-serif;
+  text-align:center;
+}
+.grid {
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:20px;
+  padding:20px;
+}
+.card {
+  background:#111;
+  border:2px solid #FF4500;
+  border-radius:15px;
+  padding:30px;
+  font-size:1.3rem;
+  font-weight:bold;
+}
+.card:active { background:#FF4500; color:#000; }
+.status { margin-top:20px; font-size:1.2rem; color:#FF4500; }
+</style>
+</head>
+
+<body>
+
+<h2>🚪 Autonomous Gate AI</h2>
+<p>Tap & Speak — No Typing</p>
+
+<div class="grid">
+  <div class="card" onclick="goToVoice()">🎙 Voice Entry</div>
+  <div class="card" onclick="goToDelivery()">📦 Delivery</div>
+  <div class="card" onclick="send('GUEST')">👤 Guest</div>
+
+  <!-- ❗ DO NOT CHANGE THIS BUTTON -->
+  <div class="card" onclick="openCamera()">📹 Scan / Detect</div>
+</div>
+
+<div class="status" id="status">Waiting...</div>
+
+<video id="cam" autoplay playsinline style="display:none;width:100%;"></video>
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+const status = document.getElementById("status");
+const video  = document.getElementById("cam");
+const canvas = document.getElementById("canvas");
+const ctx    = canvas.getContext("2d");
+
+/* PAGE NAVIGATION */
+function goToVoice()   { window.location.href = "/voice/"; }
+function goToDelivery(){ window.location.href = "/delivery/"; }
+
+/* BACKEND COMMANDS (unchanged) */
+function send(cmd){
+  status.innerText = "AI analyzing...";
+  fetch("/agent/process/",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({command:cmd})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    status.innerText = d.en;
+    speak(d.en);
+  });
+}
+
+/* 🔊 VOICE OUTPUT */
+function speak(text){
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "en-US";
+  speechSynthesis.speak(msg);
+}
+
+/* ===============================
+   📹 SCAN / DETECT (UNCHANGED ENTRY)
+   =============================== */
+async function openCamera(){
+  try {
+    status.innerText = "Opening camera...";
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }
+    });
+    video.srcObject = stream;
+    video.style.display = "block";
+
+    // Give camera time to initialize
+    setTimeout(scanFrame, 1500);
+  } catch (err) {
+    console.error(err);
+    status.innerText = "❌ Camera permission denied";
+  }
+}
+
+/* 🧠 FRAME ANALYSIS */
+function scanFrame(){
+  if (!video.videoWidth) {
+    status.innerText = "Camera not ready. Try again.";
+    stopCamera();
+    return;
+  }
+
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0);
+
+  /* ---- QR DETECTION (SIMULATED) ---- */
+  const qrDetected = Math.random() > 0.6;
+  if (qrDetected) {
+    status.innerText = "✅ QR CODE DETECTED – ACCESS GRANTED";
+    speak("QR code detected. Access granted.");
+    stopCamera();
+    return;
+  }
+
+  /* ---- BRAND / LOGO DETECTION (SIMULATED) ---- */
+  const brand = detectBrand();
+  if (brand) {
+    status.innerText = `📦 ${brand} DELIVERY DETECTED`;
+    speak(`${brand} delivery detected. OTP verification required.`);
+    stopCamera();
+
+    // 🔐 INVOLVE OTP ONLY FOR DELIVERY
+    setTimeout(() => {
+      window.location.href = "/delivery/phone/";
+    }, 1200);
+    return;
+  }
+
+  /* ---- NOTHING DETECTED ---- */
+  status.innerText = "❌ No QR or known delivery brand detected";
+  speak("No valid package detected.");
+  stopCamera();
+}
+
+/* 🏷️ BRAND DETECTION (SIMULATION) */
+function detectBrand(){
+  const deliveryBrands = ["Amazon", "Flipkart", "DHL", "FedEx"];
+  return Math.random() > 0.5
+    ? deliveryBrands[Math.floor(Math.random() * deliveryBrands.length)]
+    : null;
+}
+
+/* 🎥 STOP CAMERA */
+function stopCamera(){
+  const stream = video.srcObject;
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  video.srcObject = null;
+  video.style.display = "none";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+<h3>Enter OTP</h3>
+
+<input id="otp" placeholder="6-digit OTP">
+<button onclick="verifyOtp()">Verify</button>
+
+<script>
+function verifyOtp(){
+  const otp = document.getElementById("otp").value;
+
+  fetch("/delivery/verify-otp/",{
+    method:"POST",
+    headers:{ "Content-Type":"application/x-www-form-urlencoded" },
+    body:`otp=${otp}`
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.status==="VERIFIED"){
+      window.location.href="/delivery/scan/";
+    } else {
+      alert("Invalid OTP");
+    }
+  });
+}
+</script>

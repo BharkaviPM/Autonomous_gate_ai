@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gate Voice Assistant</title>
+<style>
+body { background:black; color:#FF4500; font-family:sans-serif; text-align:center; }
+#mic-btn { width:200px; height:200px; border-radius:50%; background:#FF4500; border:10px solid white; font-size:80px; }
+.lang-btn { padding:10px; margin:5px; }
+</style>
+</head>
+<body>
+
+<h2>🎙 Gate Voice Assistant</h2>
+
+<button class="lang-btn" onclick="setLang('hi-IN')">Hindi</button>
+<button class="lang-btn" onclick="setLang('te-IN')">Telugu</button>
+<button class="lang-btn" onclick="setLang('en-US')">English</button>
+
+<div id="original">Waiting...</div>
+<div id="translated">Tap to Speak</div>
+
+<button id="mic-btn" onclick="listen()">🎤</button>
+
+<script>
+let currentLang = "en-US";
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+function setLang(lang){ currentLang = lang; }
+
+function listen(){
+    recognition.lang = currentLang;
+    recognition.start();
+    document.getElementById("translated").innerText = "Listening...";
+}
+
+recognition.onresult = function(e){
+    const text = e.results[0][0].transcript.toLowerCase();
+    document.getElementById("original").innerText = text;
+
+    if(text.includes("scan") || text.includes("स्कैन") || text.includes("స్కాన్")){
+        send("SCAN");
+    }
+    else if(text.includes("help") || text.includes("मदद") || text.includes("సహాయం")){
+        send("HELP");
+    }
+};
+
+function send(cmd){
+    fetch("/agent/process/",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({command:cmd})
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        document.getElementById("translated").innerText = d.en;
+        speak(d);
+    });
+}
+
+function speak(d){
+    const msg = new SpeechSynthesisUtterance();
+    msg.text = currentLang==="hi-IN"?d.hi:currentLang==="te-IN"?d.te:d.en;
+    msg.lang = currentLang;
+    speechSynthesis.speak(msg);
+}
+</script>
+
+</body>
+</html>

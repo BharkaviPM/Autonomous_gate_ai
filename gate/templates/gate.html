@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Autonomous Gate AI</title>
+    <style>
+        body { font-family: Arial; background: #f4f6fa; padding: 30px; }
+        .card { background: white; padding: 20px; width: 400px; border-radius: 8px; }
+        button { padding: 10px; background: #1e88e5; color: white; border: none; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🚪 Gate Entry</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        Name:<br>
+        <input name="visitor_name" required><br><br>
+
+        Visit Hour (0–23):<br>
+        <input name="visit_hour" type="number" min="0" max="23" required><br><br>
+
+        Visits in last 7 days:<br>
+        <input name="frequency_7d" type="number" required><br><br>
+
+        <button type="submit">Analyze</button>
+    </form>
+
+    {% if result %}
+    <hr>
+    <h3>🤖 AI Decision</h3>
+    <p><b>Intent:</b> {{ intent }}</p>
+    <p><b>Approval Probability:</b> {{ approval }}%</p>
+    <p><b>Anomaly Risk:</b> {{ anomaly }}</p>
+    {% endif %}
+
+    <br>
+    <a href="/analytics/">View Analytics</a>
+</div>
+
+</body>
+</html>
